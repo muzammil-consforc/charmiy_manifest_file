@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: kafka
+  name: kafka
+  namespace: charmiy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      hostname: kafka
+      containers:
+        - env:
+            - name: KAFKA_ID
+              value: "1"
+            - name: KAFKA_ZOOKEEPER_CONNECT
+              value: zookeeper-service.charmiy.svc.cluster.local:2181
+            - name: KAFKA_LISTENERS
+              value: PLAINTEXT://:9092
+            - name: KAFKA_ADVERTISED_LISTENERS
+              value: PLAINTEXT://kafka:9092  # Corrected to only use PLAINTEXT
+            - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+              value: PLAINTEXT:PLAINTEXT
+            - name: KAFKA_PORT
+              value: "9092"  # Specify the port here if needed
+          image: wurstmeister/kafka
+          imagePullPolicy: IfNotPresent
+          name: kafka
+          ports:
+            - containerPort: 9092
+
+          resources:
+            requests:
+              cpu: "400m"  # Minimum CPU requested
+              memory: "128Mi"  # Minimum memory requested
+#            limits:
+#              cpu: "500m"  # Maximum CPU allowed
+#              memory: "512Mi"  # Maximum memory allowed
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: kafka
+  name: kafka
+  namespace: charmiy
+spec:
+  ports:
+    - port: 9092
+      targetPort: 9092
+  selector:
+    app: kafka

@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: charmiy-logs
+  namespace: charmiy
+  labels:
+    app: charmiy-logs
+spec:
+  selector:
+    matchLabels:
+      app: charmiy-logs
+  template:
+    metadata:
+      labels:
+        app: charmiy-logs
+    spec:
+      containers:
+        - name: charmiy-logs
+          image: consforc/charmiy-logs
+          ports:
+            - containerPort: 5004
+          env:
+            - name: NODE_ENV
+              value: development
+            - name: REDIS_URL
+              value: "redis://redis-service:6379"  # Point to the Redis service
+            - name: KAFKA_BROKER
+              value: "kafka:9092"  # Replace with the actual Kafka broker service name and port
+
+          resources:
+            requests:
+              cpu: "400m"  # Minimum CPU requested
+              memory: "128Mi"  # Minimum memory requested
+#            limits:
+#              cpu: "500m"  # Maximum CPU allowed
+#              memory: "512Mi"  # Maximum memory allowed
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: charmiy-logs
+  namespace: charmiy
+spec:
+  ports:
+    - port: 5004
+      targetPort: 5004
+  selector:
+    app: charmiy-logs
+  type: ClusterIP

@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: recommendation-microservice
+  namespace: charmiy
+  labels:
+    app: recommendation-microservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: recommendation-microservice
+  template:
+    metadata:
+      labels:
+        app: recommendation-microservice
+    spec:
+      containers:
+        - name: recommendation-microservice
+          image: consforc/charmiy-recommendation-microservice
+          ports:
+            - containerPort: 5008
+          env:
+            - name: NODE_ENV
+              value: development
+            - name: REDIS_URL
+              value: "redis://redis-service:6379"  # Point to the Redis service
+            - name: KAFKA_BROKER
+              value: "kafka:9092"  # Replace with the actual Kafka broker service name and port
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: recommendation-microservice
+  namespace: charmiy
+spec:
+  ports:
+    - port: 5008
+      targetPort: 5008
+  selector:
+    app: recommendation-microservice
+  type: ClusterIP

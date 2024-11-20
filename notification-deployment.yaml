@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-microservice
+  namespace: charmiy
+  labels:
+    app: notification-microservice
+spec:
+  selector:
+    matchLabels:
+      app: notification-microservice
+  template:
+    metadata:
+      labels:
+        app: notification-microservice
+    spec:
+      containers:
+        - name: notification-microservice
+          image: consforc/notification-microservice
+          ports:
+            - containerPort: 5002
+          env:
+            - name: NODE_ENV
+              value: development
+            - name: REDIS_URL
+              value: "redis://redis-service:6379"  # Point to the Redis service
+            - name: KAFKA_BROKER
+              value: "kafka:9092"  # Replace with the actual Kafka broker service name and port
+
+          resources:
+            requests:
+              cpu: "400m"  # Minimum CPU requested
+              memory: "128Mi"  # Minimum memory requested
+#            limits:
+#              cpu: "500m"  # Maximum CPU allowed
+#              memory: "512Mi"  # Maximum memory allowed
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-microservice
+  namespace: charmiy
+spec:
+  ports:
+    - port: 5002
+      targetPort: 5002
+  selector:
+    app: notification-microservice
+  type: ClusterIP

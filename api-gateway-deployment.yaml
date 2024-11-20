@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apigateway
+  namespace: charmiy
+  labels:
+    app: apigateway
+spec:
+  selector:
+    matchLabels:
+      app: apigateway
+  template:
+    metadata:
+      labels:
+        app: apigateway
+    spec:
+      containers:
+        - name: apigateway
+          image: consforc/charmiy-apigateway-microservice:latest
+          ports:
+            - containerPort: 5000
+          env:
+            - name: NODE_ENV
+              value: development
+
+            - name: signup-microservice_SERVER_URL
+              value: signup-microservice:5001
+
+            - name: notification-microservice_SERVER_URL
+              value: notification-microservice:5002
+
+            - name: charmiy-logs_SERVER_URL
+              value: charmiy-logs:5004
+
+            - name: charmiy-profile_SERVER_URL
+              value: profile-microservice:5005
+
+            - name: promt-microservice_SERVER_URL
+              value: promt-microservice:5006
+
+          resources:
+            requests:
+              cpu: "400m"  # Minimum CPU requested
+              memory: "128Mi"  # Minimum memory requested
+#            limits:
+#              cpu: "500m"  # Maximum CPU allowed
+#              memory: "512Mi"  # Maximum memory allowed
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: apigateway
+  namespace: charmiy
+spec:
+  type: NodePort
+  ports:
+    - port: 5000
+      targetPort: 5000
+      nodePort: 30001  # Optional; specify or let Kubernetes assign
+  selector:
+    app: apigateway

@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: signup-microservice
+  namespace: charmiy
+  labels:
+    app: signup-microservice
+spec:
+#  replicas: 1
+  selector:
+    matchLabels:
+      app: signup-microservice
+  template:
+    metadata:
+      labels:
+        app: signup-microservice
+    spec:
+      containers:
+        - name: signup-microservice
+          image: consforc/aut-sign-up
+          ports:
+            - containerPort: 5001
+          env:
+            - name: NODE_ENV
+              value: development
+            - name: REDIS_URL
+              value: "redis://redis-service:6379"  # Point to the Redis service
+            - name: KAFKA_BROKER
+              value: "kafka:9092"  # Replace with the actual Kafka broker service name and port
+
+          resources:
+            requests:
+              cpu: "400m"  # Minimum CPU requested
+              memory: "128Mi"  # Minimum memory requested
+#            limits:
+#              cpu: "500m"  # Maximum CPU allowed
+#              memory: "512Mi"  # Maximum memory allowed
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: signup-microservice
+  namespace: charmiy
+spec:
+  ports:
+    - port: 5001
+      targetPort: 5001
+  selector:
+    app: signup-microservice
+  type: ClusterIP

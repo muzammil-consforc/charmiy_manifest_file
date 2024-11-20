@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: profile-microservice
+  namespace: charmiy
+  labels:
+    app: profile-microservice
+spec:
+#  replicas: 1
+  selector:
+    matchLabels:
+      app: profile-microservice
+  template:
+    metadata:
+      labels:
+        app: profile-microservice
+    spec:
+      containers:
+        - name: profile-microservice
+          image: consforc/charmiy-profile-microservice:latest
+          ports:
+            - containerPort: 5005
+          env:
+            - name: NODE_ENV
+              value: development
+            - name: REDIS_URL
+              value: "redis://redis-service:6379"  # Point to the Redis service
+            - name: KAFKA_BROKER
+              value: "kafka:9092"  # Replace with the actual Kafka broker service name and port
+
+          resources:
+            requests:
+              cpu: "400m"  # Minimum CPU requested
+              memory: "128Mi"  # Minimum memory requested
+#            limits:
+#              cpu: "500m"  # Maximum CPU allowed
+#              memory: "512Mi"  # Maximum memory allowed
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: profile-microservice
+  namespace: charmiy
+spec:
+  ports:
+    - port: 5005
+      targetPort: 5005
+  selector:
+    app: profile-microservice
+  type: ClusterIP
